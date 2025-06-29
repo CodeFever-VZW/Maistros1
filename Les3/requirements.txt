@@ -29,7 +29,7 @@ ml_dtypes==0.5.1
 mpmath==1.3.0
 nest-asyncio==1.6.0
 networkx==3.4.2
-numpy==1.26.1
+numpy==1.26.4
 opencv-contrib-python==4.11.0.86
 opencv-python==4.11.0.86
 opt_einsum==3.4.0
@@ -45,7 +45,7 @@ pure_eval==0.2.3
 pycparser==2.22
 pyparsing==3.2.1
 requests==2.32.3
-scipy==1.11.2
+scipy==1.15.1
 sentencepiece==0.2.0
 six==1.17.0
 sounddevice==0.5.1
