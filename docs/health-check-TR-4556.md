@@ -29,6 +29,10 @@
 
 ¹ Les3's *slide* code installs (torch); the repo's shipped `requirements.txt` is for a different (stale) lesson — see below.
 
+## Not in scope: Les1 & les -1 (no runnable code)
+
+The repo covers **Les2–Les12**. `Les1` was removed from the repo (commit `5e437be` "Delete first lesson files"), so there is no Les1 code on disk. Its studio deck (**"les 01: AI?"**, id 4916) is a **concept-only** lesson — 131 slides, **zero code cells** — so there is nothing to run or check. There is also a setup deck **"les -1: Huggingface"** (id 4946) — a screenshot walkthrough for creating a HuggingFace account/token, likewise **no runnable code**. Both are correctly excluded from the install/run/reachability checks; they were pulled from studio and inspected to confirm they contain no code.
+
 ## Cross-cutting issues (fix once, helps several lessons)
 
 1. **Repo git-LFS is disabled** → `git lfs pull` returns *"Git LFS is disabled for this repository."* The two 353 MB GloVe files (Les5, Les6) are LFS-tracked and therefore **unobtainable** — blocks both word-embedding lessons. *Fix: re-enable LFS on the GitHub repo, or re-host the GloVe subset (release asset/direct link) and update the lessons.*
