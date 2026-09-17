@@ -1,1 +1,5 @@
 /.idea
+# AI
+.env
+.superpowers/
+.playwright-mcp/
