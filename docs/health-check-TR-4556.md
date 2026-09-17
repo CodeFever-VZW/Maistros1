@@ -11,15 +11,15 @@
 
 ## Summary
 
-**6 ok · 2 warning · 3 broken** (of 11 lessons).
+**6 ok · 2 warning · 3 broken** (of 11 lessons). *Update 2026-09-17: Les5 & Les6 (GloVe data) resolved — see [Update](#update-2026-09-17--glove-data-resolved).*
 
 | Lesson | Topic | Model(s) | Installs | Runs | Model reachable | Severity |
 |---|---|---|:--:|:--:|:--:|---|
 | Les2 | GenAI? (langdetect) | none (local) | ✅ | ✅ | n/a | **ok** |
 | Les3 | Beelden Genereren | PGAN celebAHQ-512; SDXL | ✅¹ | ⚠️ PGAN ok / SDXL ✗ | endpoint dead | **broken** + mismatch |
 | Les4 | Text2Speech | coqui `tts_models/*` (×5) | ✅ | ✅ | ✅ | **ok** |
-| Les5 | Word Embeddings | none (GloVe file) | ✅ | code ✅ / data ✗ | n/a | **broken** (data) |
-| Les6 | Word Embedding Game | none (GloVe file) | ✅ | code ✅ / data ✗ | n/a | **broken** (data) |
+| Les5 | Word Embeddings | none (GloVe file) | ✅ | code ✅ / data ✅ | n/a | ~~broken (data)~~ → **resolved** (2026-09-17) |
+| Les6 | Word Embedding Game | none (GloVe file) | ✅ | code ✅ / data ✅ | n/a | ~~broken (data)~~ → **resolved** (2026-09-17) |
 | Les7 | Sentence Embeddings | `hkunlp/instructor-large` | ✅ | ✅ | ✅ | **ok** |
 | Les8 | Sentiment/Clustering | `hkunlp/instructor-large` | ✅ | ✅ | ✅ | **ok** |
 | Les9 | LLMs | zephyr-7b-beta, nllb-200, Falconsai/text_summarization | ✅ | import ✅ / runtime deprecated | ✅ (repos) | **warning** |
@@ -29,13 +29,21 @@
 
 ¹ Les3's *slide* code installs (torch); the repo's shipped `requirements.txt` is for a different (stale) lesson — see below.
 
+## Update 2026-09-17 — GloVe data resolved
+
+Cross-cutting issue #1 (Les5 & Les6) is fixed:
+
+- The GloVe subset is **re-hosted as a plain `.txt`** (no git-LFS, no unzip step) at `https://codefeverpublic.blob.core.windows.net/public-content/maistros1/subset_lower_glove.42B.300d.txt` — 934,857,304 B, 300-dim, verified live (HTTP 200).
+- **Studio slides updated** to point at the new URL: **les 05** slide 29 (id 2155026); **les 06** slides 16 & 17 (ids 2152357, 2152358).
+- **Repo cleaned:** removed the broken LFS `.zip` pointers from `Les5/` and `Les6/`, dropped the now-dead `*.zip` LFS rule from `.gitattributes`, and added a "Data" markdown cell with the download link to both notebooks.
+
 ## Not in scope: Les1 & les -1 (no runnable code)
 
 The repo covers **Les2–Les12**. `Les1` was removed from the repo (commit `5e437be` "Delete first lesson files"), so there is no Les1 code on disk. Its studio deck (**"les 01: AI?"**, id 4916) is a **concept-only** lesson — 131 slides, **zero code cells** — so there is nothing to run or check. There is also a setup deck **"les -1: Huggingface"** (id 4946) — a screenshot walkthrough for creating a HuggingFace account/token, likewise **no runnable code**. Both are correctly excluded from the install/run/reachability checks; they were pulled from studio and inspected to confirm they contain no code.
 
 ## Cross-cutting issues (fix once, helps several lessons)
 
-1. **Repo git-LFS is disabled** → `git lfs pull` returns *"Git LFS is disabled for this repository."* The two 353 MB GloVe files (Les5, Les6) are LFS-tracked and therefore **unobtainable** — blocks both word-embedding lessons. *Fix: re-enable LFS on the GitHub repo, or re-host the GloVe subset (release asset/direct link) and update the lessons.*
+1. **Repo git-LFS is disabled** → `git lfs pull` returns *"Git LFS is disabled for this repository."* The two 353 MB GloVe files (Les5, Les6) are LFS-tracked and therefore **unobtainable** — blocks both word-embedding lessons. *Fix: re-enable LFS on the GitHub repo, or re-host the GloVe subset (release asset/direct link) and update the lessons.* **→ RESOLVED 2026-09-17 (re-hosted; see [Update](#update-2026-09-17--glove-data-resolved)).**
 2. **Old HF serverless Inference API is retired.** `api-inference.huggingface.co` no longer serves (confirmed: host doesn't resolve); it was replaced by **Inference Providers** at `router.huggingface.co` (alive, returns 401 → needs a token). This breaks the *runtime* of Les3 (SDXL), Les9 and Les10 (langchain `HuggingFaceHub`). *Fix: migrate to `langchain_huggingface.HuggingFaceEndpoint` / the router endpoint with an HF token, or run models locally.*
 3. **All referenced model repos still exist** — none were deleted. The failures are about *access method*, not missing models.
 
@@ -53,11 +61,11 @@ The current slide teaches *image generation* (PGAN `celebAHQ-512` via `torch.hub
 ### Les4 — Text2Speech — ok
 `coqui-tts==0.26.2` installs on 3.12; **all 5 `tts_models/*` named on the slides still resolve** in the registry; synthesized a wav with `tts_models/en/ljspeech/tacotron2-DDC`. (The original coqui.ai shut down, but the maintained `coqui-tts` fork + its rehosted registry work.) **No fix needed.**
 
-### Les5 — Word Embeddings — broken (data unavailable)
-Code logic verified against a stand-in (loader + `cosine_similarity`: falcon≈eagle 0.99, falcon≠armchair 0.06). But the lesson can't run as shipped: the GloVe file is git-LFS and **LFS is disabled** (cross-cutting #1), and the code reads `...txt` while the repo ships `...zip` (needs an unzip step). **Fix:** restore GloVe availability (re-enable LFS / re-host) and add an unzip step or ship the `.txt`.
+### Les5 — Word Embeddings — ~~broken (data unavailable)~~ → resolved
+Code logic verified against a stand-in (loader + `cosine_similarity`: falcon≈eagle 0.99, falcon≠armchair 0.06). But the lesson can't run as shipped: the GloVe file is git-LFS and **LFS is disabled** (cross-cutting #1), and the code reads `...txt` while the repo ships `...zip` (needs an unzip step). **Fix:** restore GloVe availability (re-enable LFS / re-host) and add an unzip step or ship the `.txt`. **Resolved 2026-09-17:** GloVe re-hosted as `.txt`, slide 29 updated, repo `.zip` removed, notebook links to the new URL (see [Update](#update-2026-09-17--glove-data-resolved)).
 
-### Les6 — The Word Embedding Game — broken (data unavailable)
-Same GloVe data problem as Les5. Core embedding/similarity logic is fine; the interactive part is `ipywidgets` (notebook-only, expected). **Fix:** same as Les5.
+### Les6 — The Word Embedding Game — ~~broken (data unavailable)~~ → resolved
+Same GloVe data problem as Les5. Core embedding/similarity logic is fine; the interactive part is `ipywidgets` (notebook-only, expected). **Fix:** same as Les5. **Resolved 2026-09-17:** same re-host; slides 16 & 17 updated, repo `.zip` removed, notebook links to the new URL (see [Update](#update-2026-09-17--glove-data-resolved)).
 
 ### Les7 — Sentence Embeddings — ok
 Full pinned stack installs; `hkunlp/instructor-large` loads and embeds (768-dim). The feared `sentence-transformers 2.2.2` breakage does **not** occur because `huggingface-hub` is pinned to 0.24.0 (still ships `cached_download`). Only deprecation warnings. **No fix needed** (optional: migrate the deprecated `langchain.embeddings` import to `langchain_community`).
@@ -79,10 +87,10 @@ End-to-end verified: pdfplumber (240 chunks from `Badminton.pdf`) → Instructor
 
 ## Recommended actions (priority order)
 
-1. **Re-enable git-LFS (or re-host GloVe)** — unblocks Les5 & Les6. *(cross-cutting #1)*
+1. ~~**Re-enable git-LFS (or re-host GloVe)** — unblocks Les5 & Les6.~~ **✅ DONE 2026-09-17** (re-hosted as `.txt`; slides + repo updated). *(cross-cutting #1)*
 2. **Migrate off the retired HF Inference API** — fixes Les9, Les10, and the SDXL half of Les3 (→ `langchain_huggingface` / `router.huggingface.co` + HF token, or local models). *(cross-cutting #2)*
 3. **Reconcile the Les3 repo folder** with the current "Beelden Genereren" curriculum (remove stale face-detection files or restore image-gen materials).
-4. *(Optional, non-blocking)* fix the Les5 `.zip`→`.txt` unzip step; bump `pypdfium2` in Les11; migrate deprecated `langchain.embeddings` imports in Les7/8/11.
+4. *(Optional, non-blocking)* bump `pypdfium2` in Les11; migrate deprecated `langchain.embeddings` imports in Les7/8/11. *(The Les5 `.zip`→`.txt` step is now moot — the file is served as `.txt`.)*
 
 ## Notes & limitations
 
