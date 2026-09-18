@@ -11,12 +11,12 @@
 
 ## Summary
 
-**6 ok · 2 warning · 3 broken** (of 11 lessons). *Update 2026-09-17: Les5 & Les6 (GloVe data) resolved — see [Update](#update-2026-09-17--glove-data-resolved).*
+**9 ok · 2 warning · 0 broken** (of 11 lessons). *Update 2026-09-17: all three previously-broken lessons resolved — Les5 & Les6 (GloVe data) and Les3 (SDXL → SD3-medium); see the Updates below.*
 
 | Lesson | Topic | Model(s) | Installs | Runs | Model reachable | Severity |
 |---|---|---|:--:|:--:|:--:|---|
 | Les2 | GenAI? (langdetect) | none (local) | ✅ | ✅ | n/a | **ok** |
-| Les3 | Beelden Genereren | PGAN celebAHQ-512; SDXL | ✅¹ | ⚠️ PGAN ok / SDXL ✗ | endpoint dead | **broken** + mismatch |
+| Les3 | Beelden Genereren | PGAN celebAHQ-512; ~~SDXL~~ → SD3-medium | ✅ | code ✅ | ✅ (SD3-medium) | ~~broken~~ → **resolved** (2026-09-17) |
 | Les4 | Text2Speech | coqui `tts_models/*` (×5) | ✅ | ✅ | ✅ | **ok** |
 | Les5 | Word Embeddings | none (GloVe file) | ✅ | code ✅ / data ✅ | n/a | ~~broken (data)~~ → **resolved** (2026-09-17) |
 | Les6 | Word Embedding Game | none (GloVe file) | ✅ | code ✅ / data ✅ | n/a | ~~broken (data)~~ → **resolved** (2026-09-17) |
@@ -27,8 +27,6 @@
 | Les11 | RAG | instructor-large + distilbert-squad + FAISS | ✅ | ✅ | ✅ | **ok** |
 | Les12 | Chatbots | distilbert-squad, `google/flan-t5-large` | ✅ | ✅ | ✅ | **ok** |
 
-¹ Les3's *slide* code installs (torch); the repo's shipped `requirements.txt` is for a different (stale) lesson — see below.
-
 ## Update 2026-09-17 — GloVe data resolved
 
 Cross-cutting issue #1 (Les5 & Les6) is fixed:
@@ -37,6 +35,13 @@ Cross-cutting issue #1 (Les5 & Les6) is fixed:
 - **Studio slides updated** to point at the new URL: **les 05** slide 29 (id 2155026); **les 06** slides 16 & 17 (ids 2152357, 2152358).
 - **Repo cleaned:** removed the broken LFS `.zip` pointers from `Les5/` and `Les6/`, dropped the now-dead `*.zip` LFS rule from `.gitattributes`, and added a "Data" markdown cell with the download link to both notebooks.
 
+## Update 2026-09-17 — Les3 SDXL resolved (SD3-medium)
+
+Re-investigation corrected two things about Les3:
+
+- **No content mismatch.** The current studio deck *"les 03: Beelden Genereren"* (id 5111, 56 slides) is a single **three-part** lesson: PGAN face *generation* (`torch.hub` celebAHQ-512) → SDXL text→image *generation* → face *recognition* (`cv2`/`mediapipe` on `gezichten.jpg`). The repo's `mediapipe`/`opencv`/`face_recognition`/`gezichten.jpg` are **used by part 3**, not stale, and `requirements.txt` is byte-identical (mod line endings) to the file the slide serves for download. **No repo files needed changing.**
+- **The only real breakage was the SDXL endpoint**, now fixed. The old `api-inference.huggingface.co` host is retired (DNS gone), and the naive replacement `router.huggingface.co/hf-inference/…/stable-diffusion-xl-base-1.0` now returns **HTTP 410** ("no longer supported by provider hf-inference") — so the earlier router-swap recommendation is void. Of the current text-to-image models, only **`stabilityai/stable-diffusion-3-medium-diffusers`** is still served by the free `hf-inference` provider and returns raw image bytes to the lesson's existing `requests.post({"inputs": …})` code (verified live: HTTP 200 → `image/jpeg`). **Fix applied on a draft copy of the deck (id 7389):** the two SDXL code blocks (slides seq 37 & 43) now point at `https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-3-medium-diffusers`, and the token slide (seq 36) got a note that the model is gated (`gated=auto` → one-time "Agree and access repository"). The live deck 5111 is untouched pending review of the copy.
+
 ## Not in scope: Les1 & les -1 (no runnable code)
 
 The repo covers **Les2–Les12**. `Les1` was removed from the repo (commit `5e437be` "Delete first lesson files"), so there is no Les1 code on disk. Its studio deck (**"les 01: AI?"**, id 4916) is a **concept-only** lesson — 131 slides, **zero code cells** — so there is nothing to run or check. There is also a setup deck **"les -1: Huggingface"** (id 4946) — a screenshot walkthrough for creating a HuggingFace account/token, likewise **no runnable code**. Both are correctly excluded from the install/run/reachability checks; they were pulled from studio and inspected to confirm they contain no code.
@@ -44,7 +49,7 @@ The repo covers **Les2–Les12**. `Les1` was removed from the repo (commit `5e43
 ## Cross-cutting issues (fix once, helps several lessons)
 
 1. **Repo git-LFS is disabled** → `git lfs pull` returns *"Git LFS is disabled for this repository."* The two 353 MB GloVe files (Les5, Les6) are LFS-tracked and therefore **unobtainable** — blocks both word-embedding lessons. *Fix: re-enable LFS on the GitHub repo, or re-host the GloVe subset (release asset/direct link) and update the lessons.* **→ RESOLVED 2026-09-17 (re-hosted; see [Update](#update-2026-09-17--glove-data-resolved)).**
-2. **Old HF serverless Inference API is retired.** `api-inference.huggingface.co` no longer serves (confirmed: host doesn't resolve); it was replaced by **Inference Providers** at `router.huggingface.co` (alive, returns 401 → needs a token). This breaks the *runtime* of Les3 (SDXL), Les9 and Les10 (langchain `HuggingFaceHub`). *Fix: migrate to `langchain_huggingface.HuggingFaceEndpoint` / the router endpoint with an HF token, or run models locally.*
+2. **Old HF serverless Inference API is retired.** `api-inference.huggingface.co` no longer serves (confirmed: host doesn't resolve); it was replaced by **Inference Providers** at `router.huggingface.co`. This broke the *runtime* of Les3 (SDXL), Les9 and Les10 (langchain `HuggingFaceHub`). Note the target moved again since: image models are now served only by (mostly paid) third-party providers, and even `hf-inference` has dropped SDXL (returns 410). **Les3 → RESOLVED 2026-09-17** by switching to `stabilityai/stable-diffusion-3-medium-diffusers`, still on the free `hf-inference` provider (see [Update](#update-2026-09-17--les3-sdxl-resolved-sd3-medium)). **Les9/Les10 still pending:** migrate to `langchain_huggingface.HuggingFaceEndpoint` / the router with an HF token, or run models locally.
 3. **All referenced model repos still exist** — none were deleted. The failures are about *access method*, not missing models.
 
 ## Per-lesson detail
@@ -52,11 +57,12 @@ The repo covers **Les2–Les12**. `Les1` was removed from the repo (commit `5e43
 ### Les2 — GenAI? — ok
 `langdetect==1.0.9` installs and detects nl/en/fr correctly. No hosted model. **No fix needed.**
 
-### Les3 — Beelden Genereren — broken + content mismatch
-The current slide teaches *image generation* (PGAN `celebAHQ-512` via `torch.hub` + Stable Diffusion XL via HF Inference API), but the **repo `Les3/` ships face-*detection* material** (mediapipe, face_recognition, `gezichten.jpg`) — a stale/older version of the lesson.
-- PGAN via torch.hub **works** (downloaded 264 MB weights, generated a 512×512 face).
-- SDXL **fails**: the slide's `api-inference.huggingface.co/...` endpoint is dead; the live replacement is `router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0` (needs a token).
-**Fix:** (1) point the SDXL call at the Inference Providers router with a token (or use `diffusers` locally); (2) reconcile the repo folder with the current curriculum (remove the stale face-detection files / restore the image-gen materials).
+### Les3 — Beelden Genereren — ~~broken + content mismatch~~ → resolved
+**Correction (2026-09-17):** the earlier "content mismatch" was wrong. The current deck (id 5111) is a single **three-part** lesson — PGAN face *generation* (`torch.hub` `celebAHQ-512`), SDXL text→image *generation*, and face *recognition* (`cv2`/`mediapipe` on `gezichten.jpg`) — so the repo's mediapipe/opencv/`gezichten.jpg` are part of the lesson, and `requirements.txt` matches (byte-identical to the slide's download). **No repo change was needed.**
+- PGAN via torch.hub **works** (264 MB weights, generated a 512×512 face).
+- SDXL text→image **was broken**: `api-inference.huggingface.co` is retired (DNS gone) and `hf-inference` no longer serves SDXL (`router.huggingface.co/hf-inference/…/stable-diffusion-xl-base-1.0` → **410**). **Fixed** by switching to `stabilityai/stable-diffusion-3-medium-diffusers` — the one current text-to-image model still on the free `hf-inference` provider, returning raw image bytes to the lesson's unchanged `requests.post` code (verified: HTTP 200 → `image/jpeg`).
+- Face recognition **works** on the pre-shipped `gezichten.jpg` regardless of the generator.
+**Applied on a draft copy of the deck (id 7389):** the two SDXL slides (seq 37 & 43) re-pointed to the SD3-medium router URL, plus a gate note on the token slide (seq 36). Live deck 5111 left untouched for review. See [Update](#update-2026-09-17--les3-sdxl-resolved-sd3-medium).
 
 ### Les4 — Text2Speech — ok
 `coqui-tts==0.26.2` installs on 3.12; **all 5 `tts_models/*` named on the slides still resolve** in the registry; synthesized a wav with `tts_models/en/ljspeech/tacotron2-DDC`. (The original coqui.ai shut down, but the maintained `coqui-tts` fork + its rehosted registry work.) **No fix needed.**
@@ -88,8 +94,8 @@ End-to-end verified: pdfplumber (240 chunks from `Badminton.pdf`) → Instructor
 ## Recommended actions (priority order)
 
 1. ~~**Re-enable git-LFS (or re-host GloVe)** — unblocks Les5 & Les6.~~ **✅ DONE 2026-09-17** (re-hosted as `.txt`; slides + repo updated). *(cross-cutting #1)*
-2. **Migrate off the retired HF Inference API** — fixes Les9, Les10, and the SDXL half of Les3 (→ `langchain_huggingface` / `router.huggingface.co` + HF token, or local models). *(cross-cutting #2)*
-3. **Reconcile the Les3 repo folder** with the current "Beelden Genereren" curriculum (remove stale face-detection files or restore image-gen materials).
+2. **Migrate off the retired HF Inference API** — **Les3 ✅ DONE 2026-09-17** (SD3-medium on `hf-inference`); **Les9 & Les10 still pending** (→ `langchain_huggingface` / `router.huggingface.co` + HF token, or local models). *(cross-cutting #2)*
+3. ~~**Reconcile the Les3 repo folder**~~ — **dropped:** re-investigation found no mismatch. The repo folder matches the current three-part lesson; `requirements.txt` and `gezichten.jpg` are correct as shipped.
 4. *(Optional, non-blocking)* bump `pypdfium2` in Les11; migrate deprecated `langchain.embeddings` imports in Les7/8/11. *(The Les5 `.zip`→`.txt` step is now moot — the file is served as `.txt`.)*
 
 ## Notes & limitations
