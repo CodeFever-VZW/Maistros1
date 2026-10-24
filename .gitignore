@@ -3,3 +3,4 @@
 .env
 .superpowers/
 .playwright-mcp/
+.DS_Store
